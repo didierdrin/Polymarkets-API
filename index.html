@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Polymarket Data</title>
+</head>
+<body>
+  <div id="markets"></div>
+  <script>
+    fetch('https://gamma-api.polymarket.com/events?closed=false&limit=10')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('markets').innerHTML = 
+          data.map(e => `<p>${e.title}</p>`).join('');
+      });
+  </script>
+</body>
+</html>
