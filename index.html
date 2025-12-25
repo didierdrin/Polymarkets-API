@@ -69,6 +69,20 @@
       font-size: 12px;
       margin-top: 8px;
     }
+    .outcomes {
+      margin-top: 12px;
+      padding: 8px 0;
+      border-top: 1px solid #eee;
+    }
+    .outcome {
+      display: inline-block;
+      background: #f8f9fa;
+      padding: 4px 8px;
+      margin: 2px 4px 2px 0;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
     .refresh-btn {
       background: #007bff;
       color: white;
@@ -217,16 +231,25 @@
           return;
         }
         
-        marketsDiv.innerHTML = data.map(event => `
-          <div class="market">
-            <div class="market-title">${event.title || 'Untitled Market'}</div>
-            <div class="market-info">
-              ${event.description ? `<div style="margin: 8px 0;">${event.description.substring(0, 200)}${event.description.length > 200 ? '...' : ''}</div>` : ''}
-              ${event.volume ? `<span class="market-volume">Volume: $${Number(event.volume).toLocaleString()}</span>` : ''}
-              ${event.endDate ? `<div style="margin-top: 8px; font-size: 13px;">Closes: ${new Date(event.endDate).toLocaleDateString()}</div>` : ''}
+        marketsDiv.innerHTML = data.map(event => {
+          const outcomesHtml = event.markets?.map(market => 
+            market.tokens?.map(token => 
+              `<span class="outcome">${token.outcome}: ${(token.price * 100).toFixed(0)}%</span>`
+            ).join('') || ''
+          ).join('') || '';
+          
+          return `
+            <div class="market">
+              <div class="market-title">${event.title || 'Untitled Market'}</div>
+              <div class="market-info">
+                ${event.description ? `<div style="margin: 8px 0;">${event.description.substring(0, 200)}${event.description.length > 200 ? '...' : ''}</div>` : ''}
+                ${event.volume ? `<span class="market-volume">Volume: $${Number(event.volume).toLocaleString()}</span>` : ''}
+                ${event.endDate ? `<div style="margin-top: 8px; font-size: 13px;">Closes: ${new Date(event.endDate).toLocaleDateString()}</div>` : ''}
+                ${outcomesHtml ? `<div class="outcomes">${outcomesHtml}</div>` : ''}
+              </div>
             </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
         
         updatePaginationControls(data);
         
