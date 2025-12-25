@@ -231,11 +231,13 @@
           return;
         }
         
+        console.log('Sample event:', data[0]); // Debug log
+        
         marketsDiv.innerHTML = data.map(event => {
-          const outcomesHtml = event.markets?.map(market => 
+          const outcomesHtml = event.markets?.flatMap(market => 
             market.tokens?.map(token => 
               `<span class="outcome">${token.outcome}: ${(token.price * 100).toFixed(0)}%</span>`
-            ).join('') || ''
+            ) || []
           ).join('') || '';
           
           return `
