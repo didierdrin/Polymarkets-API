@@ -76,12 +76,19 @@
     }
     .outcome {
       display: inline-block;
-      background: #f8f9fa;
       padding: 4px 8px;
       margin: 2px 4px 2px 0;
       border-radius: 4px;
       font-size: 12px;
       font-weight: 500;
+    }
+    .outcome-yes {
+      background: #d4edda;
+      color: #155724;
+    }
+    .outcome-no {
+      background: #f8d7da;
+      color: #721c24;
     }
     .refresh-btn {
       background: #007bff;
@@ -234,11 +241,15 @@
         console.log('Sample event:', data[0]); // Debug log
         
         marketsDiv.innerHTML = data.map(event => {
-          const outcomesHtml = event.markets?.flatMap(market => 
-            market.tokens?.map(token => 
-              `<span class="outcome">${token.outcome}: ${(token.price * 100).toFixed(0)}%</span>`
-            ) || []
-          ).join('') || '';
+          const outcomesHtml = event.markets?.flatMap(market => {
+            if (!market.outcomePrices || !market.outcomes) return [];
+            const prices = JSON.parse(market.outcomePrices);
+            const outcomes = JSON.parse(market.outcomes);
+            return outcomes.map((outcome, i) => {
+              const colorClass = outcome.toLowerCase() === 'yes' ? 'outcome-yes' : 'outcome-no';
+              return `<span class="outcome ${colorClass}">${outcome}: ${(prices[i] * 100).toFixed(1)}%</span>`;
+            });
+          }).join('') || '';
           
           return `
             <div class="market">
