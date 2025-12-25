@@ -86,6 +86,33 @@
       background: #ccc;
       cursor: not-allowed;
     }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .pagination button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .pagination button:hover {
+      background: #0056b3;
+    }
+    .pagination button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .page-info {
+      color: #666;
+      font-size: 14px;
+    }
     .solution-box {
       background: #e7f3ff;
       border-left: 4px solid #2196F3;
@@ -108,13 +135,45 @@
 <body>
   <h1>Polymarket Live Markets</h1>
   <button id="refreshBtn" class="refresh-btn">Refresh Data</button>
+  
+  <div class="pagination">
+    <button id="prevBtn" disabled>Previous</button>
+    <span id="pageInfo" class="page-info">Page 1</span>
+    <button id="nextBtn">Next</button>
+  </div>
+  
   <div id="markets">
     <div class="loading">Loading markets...</div>
+  </div>
+  
+  <div class="pagination">
+    <button id="prevBtn2" disabled>Previous</button>
+    <span id="pageInfo2" class="page-info">Page 1</span>
+    <button id="nextBtn2">Next</button>
   </div>
 
   <script>
     const marketsDiv = document.getElementById('markets');
     const refreshBtn = document.getElementById('refreshBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn2 = document.getElementById('prevBtn2');
+    const nextBtn2 = document.getElementById('nextBtn2');
+    const pageInfo = document.getElementById('pageInfo');
+    const pageInfo2 = document.getElementById('pageInfo2');
+    
+    let currentOffset = 0;
+    const limit = 10;
+
+    function updatePaginationControls(hasData) {
+      const currentPage = Math.floor(currentOffset / limit) + 1;
+      const canGoPrev = currentOffset > 0;
+      const canGoNext = hasData && hasData.length === limit;
+      
+      prevBtn.disabled = prevBtn2.disabled = !canGoPrev;
+      nextBtn.disabled = nextBtn2.disabled = !canGoNext;
+      pageInfo.textContent = pageInfo2.textContent = `Page ${currentPage}`;
+    }
 
     async function fetchMarkets() {
       refreshBtn.disabled = true;
@@ -128,7 +187,7 @@
           ''  // Direct attempt as fallback
         ];
         
-        const apiUrl = 'https://gamma-api.polymarket.com/events?closed=false&limit=10';
+        const apiUrl = `https://gamma-api.polymarket.com/events?closed=false&limit=${limit}&offset=${currentOffset}`;
         let data = null;
         let lastError = null;
         
@@ -168,6 +227,8 @@
             </div>
           </div>
         `).join('');
+        
+        updatePaginationControls(data);
         
       } catch (error) {
         console.error('Error fetching markets:', error);
@@ -234,7 +295,34 @@ export default async function handler(req, res) {
       }
     }
 
-    refreshBtn.addEventListener('click', fetchMarkets);
+    refreshBtn.addEventListener('click', () => {
+      currentOffset = 0;
+      fetchMarkets();
+    });
+    
+    prevBtn.addEventListener('click', () => {
+      if (currentOffset > 0) {
+        currentOffset -= limit;
+        fetchMarkets();
+      }
+    });
+    
+    nextBtn.addEventListener('click', () => {
+      currentOffset += limit;
+      fetchMarkets();
+    });
+    
+    prevBtn2.addEventListener('click', () => {
+      if (currentOffset > 0) {
+        currentOffset -= limit;
+        fetchMarkets();
+      }
+    });
+    
+    nextBtn2.addEventListener('click', () => {
+      currentOffset += limit;
+      fetchMarkets();
+    });
     
     // Initial load
     fetchMarkets();
