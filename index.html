@@ -90,6 +90,46 @@
       background: #f8d7da;
       color: #721c24;
     }
+    .toggle-btn {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .toggle-btn:hover {
+      background: #0056b3;
+    }
+    .sub-markets {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+    }
+    .sub-markets.show {
+      display: block;
+    }
+    .sub-market {
+      background: #f8f9fa;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 4px;
+      border-left: 3px solid #007bff;
+    }
+    .sub-market-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 6px;
+    }
+    .sub-market-desc {
+      font-size: 12px;
+      color: #666;
+      margin: 6px 0;
+    }
     .refresh-btn {
       background: #007bff;
       color: white;
@@ -240,15 +280,23 @@
         
         console.log('Sample event:', data[0]); // Debug log
         
-        marketsDiv.innerHTML = data.map(event => {
-          const outcomesHtml = event.markets?.flatMap(market => {
-            if (!market.outcomePrices || !market.outcomes) return [];
+        marketsDiv.innerHTML = data.map((event, eventIndex) => {
+          const subMarketsHtml = event.markets?.map((market, marketIndex) => {
+            if (!market.outcomePrices || !market.outcomes) return '';
             const prices = JSON.parse(market.outcomePrices);
             const outcomes = JSON.parse(market.outcomes);
-            return outcomes.map((outcome, i) => {
+            const outcomesHtml = outcomes.map((outcome, i) => {
               const colorClass = outcome.toLowerCase() === 'yes' ? 'outcome-yes' : 'outcome-no';
               return `<span class="outcome ${colorClass}">${outcome}: ${(prices[i] * 100).toFixed(1)}%</span>`;
-            });
+            }).join('');
+            
+            return `
+              <div class="sub-market">
+                <div class="sub-market-title">${market.groupItemTitle || market.question || 'Market'}</div>
+                ${market.description ? `<div class="sub-market-desc">${market.description.substring(0, 150)}${market.description.length > 150 ? '...' : ''}</div>` : ''}
+                <div class="outcomes">${outcomesHtml}</div>
+              </div>
+            `;
           }).join('') || '';
           
           return `
@@ -258,8 +306,9 @@
                 ${event.description ? `<div style="margin: 8px 0;">${event.description.substring(0, 200)}${event.description.length > 200 ? '...' : ''}</div>` : ''}
                 ${event.volume ? `<span class="market-volume">Volume: $${Number(event.volume).toLocaleString()}</span>` : ''}
                 ${event.endDate ? `<div style="margin-top: 8px; font-size: 13px;">Closes: ${new Date(event.endDate).toLocaleDateString()}</div>` : ''}
-                ${outcomesHtml ? `<div class="outcomes">${outcomesHtml}</div>` : ''}
+                ${event.markets?.length > 0 ? `<button class="toggle-btn" onclick="document.getElementById('sub-${eventIndex}').classList.toggle('show')">Show ${event.markets.length} Markets</button>` : ''}
               </div>
+              ${subMarketsHtml ? `<div id="sub-${eventIndex}" class="sub-markets">${subMarketsHtml}</div>` : ''}
             </div>
           `;
         }).join('');
